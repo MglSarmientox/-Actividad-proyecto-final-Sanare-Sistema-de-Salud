@@ -1,0 +1,28 @@
+# Dependencias
+**/node_modules
+
+# Builds
+**/dist
+**/build
+
+# Entorno y secretos
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Git
+.git
+**/.git
+
+# Logs
+**/*.log
+
+# IDE / SO
+**/.vscode
+**/.idea
+*.swp
+
+# Extras locales
+backend/coverage
+backend/test-results
+frontend/.vercel

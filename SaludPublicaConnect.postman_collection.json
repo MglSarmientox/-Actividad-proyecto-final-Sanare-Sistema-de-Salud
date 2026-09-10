@@ -1,0 +1,290 @@
+{
+  "info": {
+    "name": "SaludPública Sanare - Gestión de Turnos",
+    "_postman_id": "saludpublica-sanare-2026-01",
+    "description": "Colección de prueba para el API de SaludPública Sanare. Variables: baseUrl=http://localhost:3001/api, token (paciente), adminToken (admin). Obtén los tokens en la pestaña Auth.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001/api" },
+    { "key": "token", "value": "" },
+    { "key": "adminToken", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Registrar paciente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) pm.collectionVariables.set('token', json.accessToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"paciente@example.com\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Paciente\",\n  \"lastName\": \"Demo\",\n  \"phone\": \"+573001111111\",\n  \"documentId\": \"CC1000000001\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
+            "description": "Registra un paciente y guarda el JWT en la variable token."
+          }
+        },
+        {
+          "name": "Login admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) pm.collectionVariables.set('adminToken', json.accessToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@saludpublica.com\",\n  \"password\": \"Admin123!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Perfil (token paciente)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/auth/profile", "host": ["{{baseUrl}}"], "path": ["auth", "profile"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Especialidades",
+      "item": [
+        {
+          "name": "Listar especialidades",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/specialties", "host": ["{{baseUrl}}"], "path": ["specialties"] }
+          }
+        },
+        {
+          "name": "Detalle especialidad",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/specialties/:id", "host": ["{{baseUrl}}"], "path": ["specialties", ":id"], "variable": [{ "key": "id", "value": "" }] }
+          }
+        },
+        {
+          "name": "Crear especialidad (ADMIN)",
+          "auth": {
+            "type": "bearer",
+            "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Oftalmología\",\n  \"description\": \"Salud visual\",\n  \"color\": \"#06b6d4\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/specialties", "host": ["{{baseUrl}}"], "path": ["specialties"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Médicos",
+      "item": [
+        {
+          "name": "Listar médicos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/doctors", "host": ["{{baseUrl}}"], "path": ["doctors"] }
+          }
+        },
+        {
+          "name": "Médicos por especialidad",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors?specialtyId=:specialtyId",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors"],
+              "query": [{ "key": "specialtyId", "value": ":specialtyId" }]
+            }
+          }
+        },
+        {
+          "name": "Detalle médico (con slots)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/doctors/:id", "host": ["{{baseUrl}}"], "path": ["doctors", ":id"], "variable": [{ "key": "id", "value": "" }] }
+          }
+        },
+        {
+          "name": "Slots disponibles por fecha",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/doctors/:id/available-slots?date=2026-09-16",
+              "host": ["{{baseUrl}}"],
+              "path": ["doctors", ":id", "available-slots"],
+              "query": [{ "key": "date", "value": "2026-09-16" }],
+              "variable": [{ "key": "id", "value": "" }]
+            }
+          }
+        },
+        {
+          "name": "Crear médico (ADMIN)",
+          "auth": {
+            "type": "bearer",
+            "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Andrea\",\n  \"lastName\": \"Sánchez\",\n  \"specialtyId\": \"PEGA_ID_ESPECIALIDAD\",\n  \"licenseNumber\": \"MTR-1010\",\n  \"email\": \"dra.andrea@saludpublica.com\",\n  \"password\": \"Doctor123!\",\n  \"consultationDays\": [1, 2, 3, 4, 5]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/doctors", "host": ["{{baseUrl}}"], "path": ["doctors"] }
+          }
+        },
+        {
+          "name": "Generar slots (ADMIN)",
+          "auth": {
+            "type": "bearer",
+            "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"days\": 7,\n  \"startHour\": 8,\n  \"endHour\": 17,\n  \"slotDurationMinutes\": 20,\n  \"weekdays\": [1, 2, 3, 4, 5]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/doctors/:id/slots/generate", "host": ["{{baseUrl}}"], "path": ["doctors", ":id", "slots", "generate"], "variable": [{ "key": "id", "value": "" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Turnos",
+      "item": [
+        {
+          "name": "Reservar turno (PATIENT)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slotId\": \"PEGA_ID_SLOT\",\n  \"reason\": \"Consulta de control\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/appointments", "host": ["{{baseUrl}}"], "path": ["appointments"] }
+          }
+        },
+        {
+          "name": "Mis turnos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/appointments", "host": ["{{baseUrl}}"], "path": ["appointments"] }
+          }
+        },
+        {
+          "name": "Cancelar turno",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/appointments/:id", "host": ["{{baseUrl}}"], "path": ["appointments", ":id"], "variable": [{ "key": "id", "value": "" }] }
+          }
+        },
+        {
+          "name": "Unirse a lista de espera",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/appointments/waitlist/:doctorId", "host": ["{{baseUrl}}"], "path": ["appointments", "waitlist", ":doctorId"], "variable": [{ "key": "doctorId", "value": "" }] }
+          }
+        },
+        {
+          "name": "Estadísticas (ADMIN)",
+          "auth": {
+            "type": "bearer",
+            "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/appointments/stats", "host": ["{{baseUrl}}"], "path": ["appointments", "stats"] }
+          }
+        },
+        {
+          "name": "Cola de notificaciones (ADMIN)",
+          "auth": {
+            "type": "bearer",
+            "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }]
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/notifications/queue-stats", "host": ["{{baseUrl}}"], "path": ["notifications", "queue-stats"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Turnos públicos (sin autenticación)",
+      "item": [
+        {
+          "name": "Ver turno por token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/appointments-public/token/:token", "host": ["{{baseUrl}}"], "path": ["appointments-public", "token", ":token"], "variable": [{ "key": "token", "value": "" }] }
+          }
+        },
+        {
+          "name": "Cancelar turno por token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/appointments-public/cancel/:token", "host": ["{{baseUrl}}"], "path": ["appointments-public", "cancel", ":token"], "variable": [{ "key": "token", "value": "" }] }
+          }
+        }
+      ]
+    }
+  ]
+}

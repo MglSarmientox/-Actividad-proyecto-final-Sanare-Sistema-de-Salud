@@ -1,0 +1,138 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum AppointmentStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+model User {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  password        String
+  firstName       String
+  lastName        String
+  phone           String?
+  documentId      String?          @unique
+  role            Role             @default(PATIENT)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  appointments    Appointment[]
+  doctor          Doctor?
+  waitlistEntries WaitlistEntry[]
+}
+
+model Specialty {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  color       String?
+  createdAt   DateTime @default(now())
+  doctors     Doctor[]
+  appointments Appointment[]
+}
+
+model Doctor {
+  id               String           @id @default(cuid())
+  userId           String?          @unique
+  user             User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  specialtyId      String
+  specialty        Specialty        @relation(fields: [specialtyId], references: [id])
+  firstName        String
+  lastName         String
+  licenseNumber    String?          @unique
+  isActive         Boolean          @default(true)
+  consultationDays Json?            @default("[]")
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  slots            Slot[]
+  appointments     Appointment[]
+  waitlistEntries  WaitlistEntry[]
+}
+
+model Slot {
+  id           String        @id @default(cuid())
+  doctorId     String
+  doctor       Doctor        @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  startTime    DateTime
+  endTime      DateTime
+  isBooked     Boolean       @default(false)
+  version      Int           @default(0)
+  appointment  Appointment?
+  createdAt    DateTime      @default(now())
+
+  @@unique([doctorId, startTime])
+  @@index([doctorId, startTime])
+  @@index([startTime])
+}
+
+model Appointment {
+  id            String            @id @default(cuid())
+  token         String            @unique @default(cuid())
+  patientId     String
+  patient       User              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId      String
+  doctor        Doctor            @relation(fields: [doctorId], references: [id], onDelete: Restrict)
+  specialtyId   String
+  specialty     Specialty         @relation(fields: [specialtyId], references: [id], onDelete: Restrict)
+  slotId        String            @unique
+  slot          Slot              @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  status        AppointmentStatus @default(CONFIRMED)
+  reason        String?
+  notes         String?
+  reminderSentAt DateTime?
+  canceledAt    DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  notifications Notification[]
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([specialtyId])
+}
+
+model WaitlistEntry {
+  id         String    @id @default(cuid())
+  patientId  String
+  patient    User      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId   String
+  doctor     Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  status     String    @default("WAITING")
+  notifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([patientId, doctorId])
+  @@index([doctorId, status])
+}
+
+model Notification {
+  id            String    @id @default(cuid())
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  type          String
+  channel       String    @default("EMAIL")
+  recipient     String
+  subject       String
+  body          String?
+  deliveredAt   DateTime?
+  error         String?
+  createdAt     DateTime  @default(now())
+  sentAt        DateTime?
+
+  @@index([appointmentId])
+}
