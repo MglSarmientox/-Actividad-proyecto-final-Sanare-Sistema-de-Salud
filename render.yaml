@@ -9,7 +9,6 @@ services:
     name: saludpublica-connect
     runtime: docker
     repo: https://github.com/USUARIO/REPOSITORIO
-    branch: main
     dockerfilePath: ./Dockerfile
     plan: free
     healthCheckPath: /api/specialties
